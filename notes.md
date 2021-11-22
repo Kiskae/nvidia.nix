@@ -112,6 +112,7 @@ https://negativo17.org/nvidia-driver/ (fedora)
 https://negativo17.org/category/nvidia/
 https://github.com/negativo17/nvidia-driver/blob/master/nvidia-generate-tarballs.sh
 https://github.com/negativo17/nvidia-driver/blob/master/nvidia-driver.spec
+https://github.com/Frogging-Family/nvidia-all/blob/master/PKGBUILD
 
 ### nixpkgs old impl
 https://github.com/NixOS/nixpkgs/tree/master/pkgs/os-specific/linux/nvidia-x11
