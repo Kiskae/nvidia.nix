@@ -1,6 +1,6 @@
 # StateR[s, a] => { state :: s, value :: a }
 # State[s, a] => { runState :: s -> StateR[s, a]}
-lib:
+{ lib }:
 let
   # (s -> StateR[s, a]) -> State[s, a]
   mkState = runState: {

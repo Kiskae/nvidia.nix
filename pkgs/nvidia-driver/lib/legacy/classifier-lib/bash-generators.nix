@@ -1,6 +1,6 @@
 # Code => string
 # Generator => Code -> Code -> [ Code ]
-lib:
+{ lib }:
 let
   inherit (lib) concatStringsSep const genAttrs mapAttrsToList flatten;
   inherit (builtins) map;
