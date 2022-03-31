@@ -7,4 +7,13 @@
 
     ${python3}/bin/python3 ${./convert-manifest.py} "$src/.manifest" > $out
   '';
+  variables = [
+    "src_path"
+    "target_path"
+    "perms"
+    "type"
+    "module"
+    "arch"
+    "extra"
+  ];
 }

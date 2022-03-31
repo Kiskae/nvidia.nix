@@ -39,6 +39,7 @@ rec {
   # (a -> b) -> State[s, a] -> State[s, b]
   fmap = f: compose (x: return (f x));
   # (a -> b -> c) -> State[s, a] -> State[s, b] -> State[s, c]
+  # TODO: swapping implementation with apply might be cleaner
   lift = f: a:
     let
       t1 = fmap f a; # State[s, (b -> c)]
@@ -53,6 +54,8 @@ rec {
   apF = lift (a: _: a);
   # State[s, a] -> State[s, b] -> State[s, b]
   apS = lift (_: b: b);
+  # State[s, (a -> b)] -> State[s, a] -> State[s, b]
+  apply = lift (f: a: f a);
   # State[s, a] -> s -> a
   evalState = state: initialState:
     let
@@ -61,6 +64,6 @@ rec {
     toValue s1;
 
   # Utils
-  # State[s + 1, s]
+  # State[int, int]
   getAndIncrement = bind get (value: apS (put (value + 1)) (return value));
 }
