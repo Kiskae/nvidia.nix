@@ -3,59 +3,70 @@ let
   # Classifier => onMatch -> onMiss -> CodeGen
   # Matcher => State[int, Classifier]
 
-  # concat: Options -> Matcher -> Matcher -> Matcher
-  concatM =
-    { resolver
-      # (left_result -> right_result -> CodeGen)
-    , shortcircuit ? _: lib.id
-      # (left_result -> Classifier -> Classifier)
+  foldM =
+    let
+      inherit (lib) singleton;
+      inherit (state) return fmap compose apply getAndIncrement;
+      inherit (codegen) writeToVariable concatOutput;
+      randomVarName = fmap (x: "_carry_${toString x}") getAndIncrement;
+
+      # stage1: (var_name -> Classifier -> Classifier)
+      #      -> Acc
+      #      -> State[int, (Classifier -> Acc)]
+      stage1 =
+        combiner:
+        { deps ? [ ]
+          # [ CodeGen ]
+        , tail ? null
+          # Classifier
+        }:
+        if tail == null then
+          return
+            (next: {
+              inherit deps;
+              # The result entirely depends on the value of tail
+              tail = next;
+            })
+        else
+          fmap
+            (var_name: next: {
+              # write previous tail out to 'var_name' and append
+              #  generated code to deps
+              deps = deps ++ singleton (
+                writeToVariable var_name (set: tail (set 1) (set 0))
+              );
+              # wrap next head to depend on result through 'var_name'
+              tail = combiner var_name next;
+            })
+            randomVarName;
+      # stage2: Classifier
+      #      -> Acc
+      #      -> Classifier
+      stage2 = default:
+        { deps ? [ ]
+        , tail ? default
+        }: onPass: onFail: concatOutput (
+          deps ++ singleton (tail onPass onFail)
+        );
+    in
+    { combiner
+    , base ? (throw "no default provided")
     }:
     let
-      inherit (state) fmap apply lift;
-      # State[int, String]
-      randomVarName = fmap (x: "_${toString x}") state.getAndIncrement;
-
-      # Bound => { var_name :: String , code :: CodeGen }
-      # State[int, (Classifier -> Bound)]
-      writeMatchToResult = fmap
-        (var_name: classifier: {
-          inherit var_name;
-          code = codegen.writeToVariable var_name (set: classifier (set 1) (set 0));
-        })
-        randomVarName;
-
-      # State[int, Classifier] -> State[int, Bound]
-      resolveLeft = apply writeMatchToResult;
-
-      # State[int, Classifier] -> State[int, (left_result) -> Bound]
-      resolveRight = lift
-        # (Classifier -> Bound) -> Classifier -> (left_result) -> Bound
-        (make_bound: right: left_result: make_bound (
-          shortcircuit left_result right
-        ))
-        writeMatchToResult;
-
-      # State[int, Bound] -> State[int, (left_bound) -> Bound] -> State[int, Classifier]
-      merge = lift (left: make_right:
-        let
-          right = make_right left.var_name;
-          final = resolver left.var_name right.var_name;
-        in
-        onPass: onFail: codegen.concat [
-          left.code
-          right.code
-          (final onPass onFail)
-        ]);
+      # stage3: State[int, Acc]
+      #      -> State[int, (Classifier -> Acc)]
+      stage3 = compose (stage1 combiner);
+      # stage4: State[int, Acc]
+      #      -> State[int, Classifier]
+      #      -> State[int, Acc]
+      stage4 = acc: apply (stage3 acc);
     in
-    left: right: merge (resolveLeft left) (resolveRight right);
-  foldM = options: default: lib.foldl (concatM options) (state.return default);
-
-  # instead of concat, use an accumulator to collect the codegen objects
-  # (State[int, acc] -> State[int, Classifier] -> State[int, acc]) -> State[int, acc]
-  #   acc => { deps :: [ CodeGen ], tail :: Classifier }
-  #   value is carried by short-circuiting behavior, either always passing on true, or always failing on false
-  # turn classifier into (name, bound) pair, previous value is used for short-circuiting behavior
-  foldM2 = lib.foldl';
+    input: lib.pipe input [
+      # [ State[int, Classifier ]] -> State[int, Acc]
+      (lib.foldl' stage4 (return { }))
+      # State[int, Acc] -> State[int, Classifier]
+      (fmap (stage2 base))
+    ];
 in
 {
   matchers =
@@ -63,28 +74,29 @@ in
       inherit (lib) const attrValues;
       inherit (state) return fmap;
       inherit (codegen) ifExpr;
-      # Required for any / all implementations
+
+      # TODO: for non-shortcircuiting, the tree needs to be inverted
+      #  execute the original, then in the winning branch, check if the
+      #  previous result was acceptable
       or_options = {
-        resolver = a: b: ifExpr "\$${a} || \$${b}";
-        # (left_result -> Classifier -> Classifier)
-        shortcircuit = name: original: onPass: onFail: inline: ifExpr
-          "\$${name}"
-          onPass
-          (original onPass onFail inline)
-          inline;
-      };
-      and_options = {
-        resolver = a: b: ifExpr "\$${a} && \$${b}";
-        # (left_result -> Classifier -> Classifier)
-        shortcircuit = name: original: onPass: onFail: inline: ifExpr
-          "\$${name}"
-          (original onPass onFail inline)
-          onFail
-          inline;
+        combiner = prev_result: original:
+          onPass: onFail:
+            ifExpr
+              "\$${prev_result} == 0"
+              (original onPass onFail)
+              onPass;
+        base = _: onFail: onFail;
       };
 
-      alwaysPass = onPass: _: const onPass;
-      alwaysFail = _: onFail: const onFail;
+      and_options = {
+        combiner = prev_result: original:
+          onPass: onFail:
+            ifExpr
+              "\$${prev_result} == 1"
+              (original onPass onFail)
+              onFail;
+        base = onPass: _: onPass;
+      };
 
       passAsList = f: x:
         if (builtins.isAttrs x) then
@@ -95,11 +107,12 @@ in
       # matchVariable: variable -> pattern -> Matcher
       # if [[ $variable == $pattern ]];
       matchVariable = variable: pattern: return (ifExpr "${variable} == ${pattern}");
-      # onPass: (Code -> Code) -> Matcher -> Matcher
-      #   allows changing of the code run if this classifier passes
+      # doOnMatch: (CodeGen -> CodeGen) -> Matcher -> Matcher
       doOnMatch = f: fmap (g: onMatch: g (f onMatch));
-      matchAny = passAsList (foldM or_options alwaysFail);
-      matchAll = passAsList (foldM and_options alwaysPass);
+      matchAny = passAsList (foldM or_options);
+      matchAll = passAsList (foldM and_options);
+      # Matcher -> Matcher
+      invertMatch = fmap (f: onPass: onFail: f onFail onPass);
     };
-  eval = lib.flip state.evalState 0;
+  eval = lib.flip state.evaluate 0;
 }

@@ -57,12 +57,11 @@ rec {
   # State[s, (a -> b)] -> State[s, a] -> State[s, b]
   apply = lift (f: a: f a);
   # State[s, a] -> s -> a
-  evalState = state: initialState:
+  evaluate = state: initialState:
     let
       s1 = runState state initialState;
     in
     toValue s1;
-
   # Utils
   # State[int, int]
   getAndIncrement = bind get (value: apS (put (value + 1)) (return value));

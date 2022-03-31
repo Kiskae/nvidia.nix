@@ -1,12 +1,27 @@
 { lib }:
 let
   inherit (lib) const concatMap isFunction singleton;
-  # Code => [ String ]
-  # CodeGen => (Code -> Code) -> Code
+
+  # Helpers => {
+  #   indent: [ a ] -> [ a ]
+  #   fromCode: String -> [ a ]
+  # }
+  # CodeGen => Helpers -> [ a ]
+
+  # indent: CodeGen -> CodeGen
+  indent = code: h: h.indent (code h);
+  # asCodeGen: [ (String | CodeGen) ] -> CodeGen
+  asCodeGen =
+    let
+      # Helpers -> (String | CodeGen) -> [ a ]
+      toResult = h: val: if isFunction val then (val h) else (h.fromCode val);
+    in
+    lib.flip (helpers: concatMap (toResult helpers));
+  fromCode = code: h: h.fromCode code;
 in
 rec {
-  # ifExpr: if-expr -> Code -> Code -> CodeGen
-  ifExpr = expr: onTrue: onFalse: indent: [
+  # ifExpr: if-expr -> CodeGen -> CodeGen -> CodeGen
+  ifExpr = expr: onTrue: onFalse: asCodeGen [
     "if [[ ${expr} ]]; then"
     (indent onTrue)
     "else"
@@ -14,19 +29,20 @@ rec {
     "fi"
   ];
 
-  # switchCase: case-expr -> [ { pattern :: case-pattern, onMatch :: Code } ]
-  #                       -> Code -> CodeGen
-  switchCase = expr: cases: onMiss: indent:
+  # switchCase: case-expr -> [ { pattern :: case-pattern, onMatch :: CodeGen } ]
+  #                       -> CodeGen -> CodeGen
+  switchCase = expr: cases: onMiss:
     let
       toSwitchCase = { pattern, onMatch }: [
         "${pattern})"
         (indent onMatch)
         ";;"
       ];
+      genCases = cases: asCodeGen (concatMap toSwitchCase cases);
     in
-    [
+    asCodeGen [
       "case ${expr} in"
-      (indent (concatMap toSwitchCase (cases ++ [{
+      (indent (genCases (cases ++ [{
         # include catchall so something always matches
         pattern = "*";
         onMatch = onMiss;
@@ -34,7 +50,7 @@ rec {
       "esac"
     ];
 
-  # matchPatterns: case-expr -> [ case-pattern ] -> Code -> Code -> CodeGen
+  # matchPatterns: case-expr -> [ case-pattern ] -> CodeGen -> CodeGen -> CodeGen
   matchPatterns = expr: patterns: onMatch: switchCase expr (map
     (pattern: {
       inherit pattern onMatch;
@@ -42,13 +58,17 @@ rec {
     patterns
   );
 
-  # writeToVariable: var_name -> ((value -> Code) -> CodeGen) -> CodeGen
+  # writeToVariable: var_name -> ((value -> CodeGen) -> CodeGen) -> CodeGen
+  # TODO: not sure if the scoping really helps, since the var_name is user-provided
   writeToVariable = var_name: subject:
     let
-      writeToResult = result: [ "local ${var_name}=${toString result}" ];
+      writeToResult = result: fromCode "local ${var_name}=${toString result}";
     in
     subject writeToResult;
 
   # [ CodeGen ] -> CodeGen
-  concat = lib.flip (inline: map (g: g inline));
+  concatOutput = asCodeGen;
+
+  # String -> CodeGen
+  inherit fromCode;
 }
