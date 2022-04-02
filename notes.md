@@ -126,3 +126,7 @@ https://github.com/NVIDIA/yum-packaging-nvidia-settings
 ### installed components
 https://download.nvidia.com/XFree86/Linux-x86_64/352.79/README/installedcomponents.html
 https://download.nvidia.com/XFree86/Linux-x86_64/340.108/README/installedcomponents.html
+https://download.nvidia.com/XFree86/Linux-x86_64/510.60.02/README/installedcomponents.html
+
+#
+https://github.com/aaronp24/nvidia-versions

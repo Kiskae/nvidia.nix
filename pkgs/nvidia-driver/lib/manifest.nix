@@ -1,4 +1,4 @@
-{ lib }: {
+{ lib }: rec {
   mkManifestWith = pkgs: src: with pkgs; runCommand "manifest.sh" { inherit src; } ''
     if [ ! -f "$src/.manifest" ]; then
       echo "$src is not an nvidia-installer distribution"
@@ -16,4 +16,13 @@
     "arch"
     "extra"
   ];
+  mkScriptTemplate = action: manifest: ''
+    manifest_entry() {
+      ${lib.concatImapStringsSep "\n" (i: v: "local ${v}=\$${toString i}") variables}
+
+      ${action}
+    }
+
+    source ${manifest}
+  '';
 }

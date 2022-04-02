@@ -3,12 +3,19 @@ let
   # Classifier => onMatch -> onMiss -> CodeGen
   # Matcher => State[int, Classifier]
 
+  # String -> State[int, String]
+  randomVarName =
+    let
+      inherit (state) fmap getAndIncrement;
+    in
+    prefix: fmap (x: "_${prefix}${toString x}") getAndIncrement;
+
+
   foldM =
     let
       inherit (lib) singleton;
-      inherit (state) return fmap compose apply getAndIncrement;
+      inherit (state) return fmap compose apply;
       inherit (codegen) writeToVariable concatOutput;
-      randomVarName = fmap (x: "_carry_${toString x}") getAndIncrement;
 
       # stage1: (var_name -> Classifier -> Classifier)
       #      -> Acc
@@ -38,16 +45,16 @@ let
               # wrap next head to depend on result through 'var_name'
               tail = combiner var_name next;
             })
-            randomVarName;
+            (randomVarName "carry_");
       # stage2: Classifier
       #      -> Acc
       #      -> Classifier
       stage2 = default:
         { deps ? [ ]
         , tail ? default
-        }: onPass: onFail: concatOutput (
+        }: onPass: onFail: concatOutput (lib.intersperse (codegen.fromCode "") (
           deps ++ singleton (tail onPass onFail)
-        );
+        ));
     in
     { combiner
     , base ? (throw "no default provided")
@@ -67,37 +74,20 @@ let
       # State[int, Acc] -> State[int, Classifier]
       (fmap (stage2 base))
     ];
+
+  # (Classifier -> Classifier) -> Matcher -> Matcher
+  intercept = modifier: state.fmap modifier;
 in
 {
   matchers =
     let
       inherit (lib) const attrValues;
       inherit (state) return fmap;
-      inherit (codegen) ifExpr;
+      inherit (codegen) ifExpr matchPatterns;
 
       # TODO: for non-shortcircuiting, the tree needs to be inverted
       #  execute the original, then in the winning branch, check if the
       #  previous result was acceptable
-      or_options = {
-        combiner = prev_result: original:
-          onPass: onFail:
-            ifExpr
-              "\$${prev_result} == 0"
-              (original onPass onFail)
-              onPass;
-        base = _: onFail: onFail;
-      };
-
-      and_options = {
-        combiner = prev_result: original:
-          onPass: onFail:
-            ifExpr
-              "\$${prev_result} == 1"
-              (original onPass onFail)
-              onFail;
-        base = onPass: _: onPass;
-      };
-
       passAsList = f: x:
         if (builtins.isAttrs x) then
           f (attrValues x)
@@ -107,12 +97,35 @@ in
       # matchVariable: variable -> pattern -> Matcher
       # if [[ $variable == $pattern ]];
       matchVariable = variable: pattern: return (ifExpr "${variable} == ${pattern}");
+
+      matchVariableMany = variable: patterns: return (matchPatterns variable patterns);
+
       # doOnMatch: (CodeGen -> CodeGen) -> Matcher -> Matcher
       doOnMatch = f: fmap (g: onMatch: g (f onMatch));
-      matchAny = passAsList (foldM or_options);
-      matchAll = passAsList (foldM and_options);
+
+      matchAny = passAsList (foldM {
+        combiner = prev_result: original:
+          onPass: onFail:
+            ifExpr
+              "\$${prev_result} == 0"
+              (original onPass onFail)
+              onPass;
+        base = _: onFail: onFail;
+      });
+
+      matchAll = passAsList (foldM {
+        combiner = prev_result: original:
+          onPass: onFail:
+            ifExpr
+              "\$${prev_result} == 1"
+              (original onPass onFail)
+              onFail;
+        base = onPass: _: onPass;
+      });
+
       # Matcher -> Matcher
-      invertMatch = fmap (f: onPass: onFail: f onFail onPass);
+      invert = fmap (f: onPass: onFail: f onFail onPass);
     };
+  inherit intercept;
   eval = lib.flip state.evaluate 0;
 }
