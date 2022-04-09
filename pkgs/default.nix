@@ -10,11 +10,6 @@ in
 lib.recurseIntoAttrs (
   (callPackage ./nvidia-driver { }) //
   {
-    driver-link = pkgs.runCommand "hardware-driver-link"
-      {
-        driverProvider = pkgs.libglvnd.driverLink;
-      } ''
-      ln -s $driverProvider $out
-    '';
+    runtime = lib.recurseIntoAttrs (callPackage ./alternatives { });
   }
 )

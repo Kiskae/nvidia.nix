@@ -130,3 +130,9 @@ https://download.nvidia.com/XFree86/Linux-x86_64/510.60.02/README/installedcompo
 
 #
 https://github.com/aaronp24/nvidia-versions
+
+https://devhints.io/bash#conditionals
+https://hackage.haskell.org/package/shell-monad-0.6.10/docs/Control-Monad-Shell.html#t:Arith
+
+validating functionality:
+https://github.com/nvpro-samples

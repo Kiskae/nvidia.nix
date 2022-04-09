@@ -2,28 +2,38 @@
 # State[s, a] => { runState :: s -> StateR[s, a]}
 { lib }:
 let
+  isState = lib.isType "state";
+
   # (s -> StateR[s, a]) -> State[s, a]
-  mkState = runState: {
+  mkState = runState: lib.setType "state" {
     inherit runState;
   };
   # State[s, a] -> (s -> StateR[s, a])
-  runState = stateM: stateM.runState;
+  runState = state:
+    assert isState state;
+    state.runState;
+
   # StateR[s, a] -> a
   toValue = stateR: stateR.value;
+
   # State[s, a] -> StateR[s, _] -> StateR[s, a]
   runStateWithPrev = state: prev: runState state prev.state;
 in
 rec {
+  inherit isState;
+
   # a -> State[s, a]
   return = value: mkState (state: {
     inherit state value;
   });
   # State[s, a] -> (a -> State[s, b]) -> State[s, b]
-  bind = p: k: mkState (s0:
+  bind = p: assert isState p; k: mkState (s0:
     let
-      s1 = runState p s0;
+      s1 = runState p s0; # StateR[s, a]
+      p1 = (k (toValue s1));
     in
-    runStateWithPrev (k (toValue s1)) s1);
+    assert isState p1;
+    runStateWithPrev p1 s1);
   # (a -> State[s, b]) -> State[s, a] -> State[s, b]
   compose = lib.flip bind;
   # State[s, s]

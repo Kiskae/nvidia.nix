@@ -133,21 +133,25 @@ let
         (matchType "C")
       ]);
       expected = [
+        "declare _carry_0"
         "if [[ $type == A ]]; then"
-        "|   local _0=1"
+        "|   _carry_0=1"
         "else"
-        "|   local _0=0"
+        "|   _carry_0=0"
         "fi"
-        "if [[ $_0 == 0 ]]; then"
+        ""
+        "declare _carry_1"
+        "if [[ $_carry_0 == 0 ]]; then"
         "|   if [[ $type == B ]]; then"
-        "|   |   local _1=1"
+        "|   |   _carry_1=1"
         "|   else"
-        "|   |   local _1=0"
+        "|   |   _carry_1=0"
         "|   fi"
         "else"
-        "|   local _1=1"
+        "|   _carry_1=1"
         "fi"
-        "if [[ $_1 == 0 ]]; then"
+        ""
+        "if [[ $_carry_1 == 0 ]]; then"
         "|   if [[ $type == C ]]; then"
         "|   |   return 0"
         "|   else"
@@ -169,21 +173,25 @@ let
         (matchType "C")
       ]);
       expected = [
+        "declare _carry_0"
         "if [[ $type == A ]]; then"
-        "|   local _0=1"
+        "|   _carry_0=1"
         "else"
-        "|   local _0=0"
+        "|   _carry_0=0"
         "fi"
-        "if [[ $_0 == 1 ]]; then"
+        ""
+        "declare _carry_1"
+        "if [[ $_carry_0 == 1 ]]; then"
         "|   if [[ $type == B ]]; then"
-        "|   |   local _1=1"
+        "|   |   _carry_1=1"
         "|   else"
-        "|   |   local _1=0"
+        "|   |   _carry_1=0"
         "|   fi"
         "else"
-        "|   local _1=0"
+        "|   _carry_1=0"
         "fi"
-        "if [[ $_1 == 1 ]]; then"
+        ""
+        "if [[ $_carry_1 == 1 ]]; then"
         "|   if [[ $type == C ]]; then"
         "|   |   return 0"
         "|   else"
@@ -197,6 +205,16 @@ let
     test_Classifier_matchAllBase = {
       expr = toScript (matchAll [ ]);
       expected = [ "return 0" ];
+    };
+    test_Classifier_invert = {
+      expr = toScript (invert (matchType "TLS_LIB"));
+      expected = [
+        "if [[ $type == TLS_LIB ]]; then"
+        "|   return 1"
+        "else"
+        "|   return 0"
+        "fi"
+      ];
     };
   };
 in

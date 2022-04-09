@@ -27,9 +27,15 @@
   "455.46.04": {
     "x86_64-linux": "sha256-qhPFsQbmHMIhwpntIfcy0G7tLAyceGPfAoDt0AcXZMc="
   },
+  "435.21": {
+    "x86_64-linux": "sha256-+sfALM01xwQ/ThrdAiSnOA0L0eSqFcprwwEsdY7Bd2w="
+  },
   "390.147": {
     "i686-linux": "sha256-KsSwXQ3mEvE/XwgN/2xz8G6osdjqIbdQVEECerTVWwE=",
     "x86_64-linux": "sha256-v9ODXuIKKpa19qWMPo/DCRFF8OOYp8LjUF8WSaxrDCc="
+  },
+  "361.45.18": {
+    "x86_64-linux": "sha256-+0OzIWCfMU05Q1oRRjkrTTkg285ZPc0Zs4SKBW6RxXA="
   },
   "340.108": {
     "i686-linux": "sha256-IDKq1hLZ868a7Pl5z9/kI9eap2kp74v406QDB29QfMo=",

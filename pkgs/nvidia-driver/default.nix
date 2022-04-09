@@ -14,7 +14,15 @@ let
       defaultHash
       hashes;
 
-  mkPackageSet = callPackage ./packages.nix { };
+  mkPackageSet1 = callPackage ./packages.nix { };
+  mkPackageSet = { version, src }: lib.makeScope
+    pkgs.newScope
+    (callPackage ./packages {
+      nvidiaVersion = version;
+      distTarball = src;
+      linuxPackages = pkgs.linuxPackages_zen;
+      enableCompat32 = true;
+    });
   mkPackageSetFor = args: (mkPackageSet args).pkgFarm;
 
   mapSystemToNvidiaPlatform = system: {
@@ -30,6 +38,7 @@ let
 
   regularMirrors = arch:
     let
+      # replace with attrByPath
       d = rec {
         # https://download.nvidia.com/XFree86/Linux-x86_64/
         global = "Linux-${arch}";
@@ -134,6 +143,7 @@ channels // {
       sha256 = "sha256-ZD60SIwZ3lezN7FBj1GAJBaK/t4WobnLMkqQf10BQQs=";
     };
   };
+
   defaultPackage = mkChannelPackage {
     version = "470.86";
   };

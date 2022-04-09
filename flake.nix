@@ -1,6 +1,8 @@
 {
   description = "A very basic flake";
 
+  inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+
   inputs.flake-utils.url = "github:numtide/flake-utils";
 
   inputs.flake-compat = {
@@ -17,7 +19,16 @@
     };
     shell = { pkgs }: with pkgs; mkShell {
       outputs = [ "lib" "out" "dev" "lib32" ];
-      nativeBuildInputs = [ bashInteractive nixpkgs-fmt bintools patchelf file nix-index jq ];
+      nativeBuildInputs = [
+        bashInteractive
+        nixpkgs-fmt
+        bintools
+        patchelf
+        file
+        nix-index
+        jq
+        (python3.withPackages (pkgs: [ pkgs.yapf ]))
+      ];
       buildInputs = [ ];
     };
     systems = [

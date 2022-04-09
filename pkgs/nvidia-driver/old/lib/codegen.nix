@@ -58,6 +58,19 @@ rec {
     patterns
   );
 
+  /*
+    # regularVar: var_name -> {
+    #   prelude :: CodeGen
+    #   get :: string
+    #   set :: value -> CodeGen
+    # }
+  */
+  mkRegularVar = var_name: {
+    prelude = fromCode "declare ${var_name}";
+    get = "\$${var_name}";
+    set = value: fromCode "${var_name}=${toString value}";
+  };
+
   # writeToVariable: var_name -> ((value -> CodeGen) -> CodeGen) -> CodeGen
   # TODO: not sure if the scoping really helps, since the var_name is user-provided
   writeToVariable = var_name: subject:

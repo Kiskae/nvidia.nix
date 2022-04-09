@@ -7,6 +7,7 @@
 
     ${python3}/bin/python3 ${./convert-manifest.py} "$src/.manifest" > $out
   '';
+
   variables = [
     "src_path"
     "target_path"
@@ -16,6 +17,7 @@
     "arch"
     "extra"
   ];
+
   mkScriptTemplate = action: manifest: ''
     manifest_entry() {
       ${lib.concatImapStringsSep "\n" (i: v: "local ${v}=\$${toString i}") variables}

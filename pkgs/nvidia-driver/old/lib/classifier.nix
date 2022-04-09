@@ -15,7 +15,7 @@ let
     let
       inherit (lib) singleton;
       inherit (state) return fmap compose apply;
-      inherit (codegen) writeToVariable concatOutput;
+      inherit (codegen) concatOutput mkRegularVar;
 
       # stage1: (var_name -> Classifier -> Classifier)
       #      -> Acc
@@ -36,14 +36,19 @@ let
             })
         else
           fmap
-            (var_name: next: {
+            (var_name: next:
+            let
+              var = mkRegularVar var_name;
+            in
+            {
               # write previous tail out to 'var_name' and append
               #  generated code to deps
-              deps = deps ++ singleton (
-                writeToVariable var_name (set: tail (set 1) (set 0))
-              );
+              deps = deps ++ singleton (concatOutput [
+                var.prelude
+                (tail (var.set 1) (var.set 0))
+              ]);
               # wrap next head to depend on result through 'var_name'
-              tail = combiner var_name next;
+              tail = combiner var.get next;
             })
             (randomVarName "carry_");
       # stage2: Classifier
@@ -76,7 +81,7 @@ let
     ];
 
   # (Classifier -> Classifier) -> Matcher -> Matcher
-  intercept = modifier: state.fmap modifier;
+  intercept = state.fmap;
 in
 {
   matchers =
@@ -107,7 +112,7 @@ in
         combiner = prev_result: original:
           onPass: onFail:
             ifExpr
-              "\$${prev_result} == 0"
+              "${prev_result} == 0"
               (original onPass onFail)
               onPass;
         base = _: onFail: onFail;
@@ -117,15 +122,16 @@ in
         combiner = prev_result: original:
           onPass: onFail:
             ifExpr
-              "\$${prev_result} == 1"
+              "${prev_result} == 1"
               (original onPass onFail)
               onFail;
         base = onPass: _: onPass;
       });
 
       # Matcher -> Matcher
-      invert = fmap (f: onPass: onFail: f onFail onPass);
+      invert = fmap (lib.flip);
     };
   inherit intercept;
+
   eval = lib.flip state.evaluate 0;
 }

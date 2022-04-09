@@ -1,0 +1,53 @@
+{
+  "$id": "https://developer.download.nvidia.com/compute/redist/redistrib-v2.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "release_date": {
+    "type": "string",
+    "format": "date"
+  },
+  "required": [ "release_date" ],
+  "$component": {
+    "description": "Component name",
+    "type": "object",
+    "properties": {
+      "name": {
+        "description": "Official name of a component",
+        "type": "string"
+      },
+      "license": {
+        "description": "Short-name of EULA software licensed under",
+        "type": "string"
+      },
+      "version": {
+        "description": "A unique version number for component",
+        "type": "string"
+      },
+      "required": [ "name", "license", "version" ],
+      "$platform": {
+        "description": "Target operating system (hyphen) architecture",
+        "type": "object",
+        "properties": {
+          "relative_path": {
+            "description": "Relative URL to payload",
+            "type": "string"
+          },
+          "sha256": {
+            "description": "SHA256 checksum hash of payload",
+            "type": "string",
+            "pattern": "^[A-Fa-f0-9]{64}$"
+          },
+          "md5": {
+            "description": "MD5 checksum hash of payload",
+            "type": "string",
+            "pattern": "^[A-Fa-f0-9]{32}$"
+          },
+          "size": {
+            "description": "File-size in bytes of payload",
+            "type": "integer"
+          }
+        },
+        "required": [ "relative_path", "sha256", "md5", "size" ]
+      }
+    }
+  }
+}

@@ -15,90 +15,6 @@ let
       (mapAttrs (const matchVariable) vars) // { inherit many; };
   in
   {
-    xorg_driver = match.type "XMODULE_*";
-    xorg_glx_module = match.type "GLX_MODULE_*";
-    xorg_xvmc = match.type "XLIB_*";
-    xorg_very_old = match.type "XFREE86_*";
-    libnvidia-tls = match.type "TLS_*";
-    kernel_src = match.many.type [
-      "KERNEL_MODULE_*"
-      "UVM_MODULE_*"
-    ];
-    vdpau = matchAll [
-      (match.type "VDPAU_*")
-      # some distributions include the vdpau vendor-neutral libs
-      (invert (match.type "VDPAU_WRAPPER_*"))
-    ];
-    vdpau_wrapper = match.type "VDPAU_WRAPPER_*";
-    opencl = matchAny [
-      (match.type "OPENCL_WRAPPER_*")
-      (match.target_path "libOpenCL.so*")
-    ];
-    html_docs = matchAll [
-      (match.target_path "*.html")
-      (match.type "DOCUMENTATION")
-    ];
-    wine_dll = match.type "WINE_LIB";
-    firmware = match.type "FIRMWARE";
-    ngx = matchAny {
-      lib = match.target_path "libnvidia-ngx.so.*";
-      bin = match.target_path "nvidia-ngx-updater";
-    };
-    optical_flow = match.module "opticalflow";
-    OptiX = match.module "optix";
-    app_profiles = match.type "APPLICATION_PROFILE";
-    xorg_config_file = match.type "XORG_OUTPUTCLASS_CONFIG";
-    NvFBC = match.target_path "libnvidia-fbc.so*";
-    NvEncodeAPI = match.type "ENCODEAPI_*";
-    NVCUVID = match.target_path "libnvcuvid.so*";
-    nvidia-persistenced = match.src_path "nvidia-persistenced*";
-    nvidia-powerd = match.module "powerd";
-    nvidia-bug-report = match.many.target_path [
-      "nvidia-debugdump"
-      "nvidia-bug-report.sh"
-    ];
-    systemd = matchAny [
-      (matchAll [
-        (match.type "SYSTEMD_*")
-        (match.module "installer")
-      ])
-      (match.target_path "nvidia-sleep.sh")
-    ];
-    nvidia-smi = matchAll [
-      (match.src_path "*nvidia-smi*")
-      (invert (match.target_path "*/nvidia-smi.html"))
-    ];
-    libnvidia-gtk = match.target_path "libnvidia-gtk*";
-    nvidia-settings = match.src_path "*nvidia-settings*";
-    nvidia-xconfig = match.src_path "*nvidia-xconfig*";
-    nvidia-modprobe = match.src_path "*nvidia-modprobe*";
-    nvidia-installer = match.src_path "*nvidia-installer*";
-    libnvidia-ml = match.target_path "libnvidia-ml*";
-    cuda-mpi = match.many.src_path [
-      "nvidia-cuda-mps-*"
-      "nvidia-cuda-proxy-*"
-    ];
-    opencl_driver = matchAny {
-      driver = match.target_path "libnvidia-opencl.so.*";
-      icd = match.type "CUDA_ICD";
-    };
-    NVVM = match.target_path "libnvidia-nvvm.so*";
-    Fatbinary_Loader = match.target_path "libnvidia-fatbinaryloader.so*";
-    PTX_JIT = match.target_path "libnvidia-ptxjitcompiler.so*";
-    cuda = match.target_path "libcuda.so*";
-    internal_libs = match.many.target_path [
-      "libnvidia-cbl*"
-      "libnvidia-cfg*"
-      "libnvidia-compiler*"
-      "libnvidia-eglcore*"
-      "libnvidia-glcore*"
-      "libnvidia-glsi*"
-      "libnvidia-glvkspirv*"
-      "libnvidia-rtcore*"
-      "libnvidia-allocator*"
-      # not explicitly listed?
-      "libnvidia-vulkan-producer*"
-    ];
     NvIFROpenGL = match.type "NVIFR_*";
     glvnd = matchAny {
       # when shipping both glvnd and non-glvnd versions
@@ -136,6 +52,7 @@ let
         type = match.type "OPENGL_*";
         not_internal = invert (match.target_path "libnvidia-*");
         no_module = match.module "\"\"";
+        no_vendor_name = invert (match.src_path "*_nvidia.so*");
       };
     };
     glvnd_driver = matchAny {
@@ -163,13 +80,17 @@ let
       ])
     ];
     dkms = match.type "DKMS_CONF";
+    grid_contrib_files = match.many.src_path [
+      "pci.ids"
+      "monitoring.conf"
+    ];
   };
 
   #TODO: turn into useful validation layer
   mega_classifier =
     let
       inherit (nvlib.classifier) intercept;
-      inherit (nvlib.classifier.matchers) matchAny doOnMatch;
+      inherit (nvlib.classifier.matchers) matchAny;
       inherit (nvlib.codegen) concatOutput fromCode ifExpr;
 
       noop = fromCode ":";
@@ -216,7 +137,7 @@ let
     } ''
     mkdir -p $out/1_results
     ln -s $classifier $out/classifier.sh
-    ln -s $manifest $out/manifest.sh
+    ln -s $manifest $out/manifest.csv
 
     ${nvlib.manifest.mkScriptTemplate ''
       data=$(echoCmd "entry" "$@")
@@ -356,7 +277,7 @@ let
             self.sources
             #self.manifest
             #(self.kmod {
-            #  inherit (pkgs.linuxPackages_zen) kernel;
+            #  inherit (pkgs.linuxPackages_5_4) kernel;
             #})
             pkgs.linuxPackages_zen.nvidia_x11_legacy470
             pkgs.mesa
