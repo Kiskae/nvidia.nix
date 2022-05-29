@@ -1,16 +1,16 @@
 { lib
-, kernel
 , src
+, version ? src.version
 , enableLegacyBuild ? !(lib.versionAtLeast version "390")
   # compatibility with the pre-KBuild makefile
 , ignoreRtCheck ? false
   # whether to allow the driver to compile for realtime kernels
 , disabledModules ? [ ]
-}:
-let
-  inherit (src) version;
-in
-kernel.stdenv.mkDerivation ({
+  # list of kernel modules to NOT build
+, linuxPackages
+, kernel ? linuxPackages.kernel
+  # override linuxPackages or kernel
+}: kernel.stdenv.mkDerivation ({
   name = "nvidia-kmod-${version}-${kernel.version}";
 
   inherit version src kernel;
@@ -20,7 +20,7 @@ kernel.stdenv.mkDerivation ({
 
   outputs = [ "out" "dev" ];
 
-  NV_EXCLUDE_KERNEL_MODULES = disabledModules;
+  NV_EXCLUDE_KERNEL_MODULES = []; # [ "nvidia-peermem" ] ++ disabledModules;
 
   makeFlags = kernel.makeFlags ++ [
     "SYSSRC=${kernel.dev}/lib/modules/${kernel.modDirVersion}/source"
@@ -36,7 +36,9 @@ kernel.stdenv.mkDerivation ({
   installTargets = [ "modules_install" ];
 
   # additional kernel modules like nvidia-fs require these
-  postInstall = "install -D -t $dev/src/nvidia-${version}/${kernel.modDirVersion}/ Module*.symvers";
+  postInstall = ''
+    install -D -t $dev/src/nvidia-${version}/${kernel.modDirVersion}/ Module*.symvers
+  '';
 
   disallowedReferences = [ kernel.dev ];
 

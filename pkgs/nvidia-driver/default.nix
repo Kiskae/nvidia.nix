@@ -1,4 +1,4 @@
-{ lib, pkgs, callPackage, stdenvNoCC, fetchurl }:
+{ lib, pkgs, callPackage, fetchurl, system }:
 let
   lookupSavedHash =
     let
@@ -14,13 +14,12 @@ let
       defaultHash
       hashes;
 
-  mkPackageSet1 = callPackage ./packages.nix { };
   mkPackageSet = { version, src }: lib.makeScope
     pkgs.newScope
     (callPackage ./packages {
       nvidiaVersion = version;
       distTarball = src;
-      linuxPackages = pkgs.linuxPackages_zen;
+      linuxPackages = pkgs.linuxKernel.packages.linux_5_17; # packageAliases.linux_latest;
       enableCompat32 = true;
     });
   mkPackageSetFor = args: (mkPackageSet args).pkgFarm;
@@ -38,31 +37,23 @@ let
 
   regularMirrors = arch:
     let
-      # replace with attrByPath
-      d = rec {
-        # https://download.nvidia.com/XFree86/Linux-x86_64/
-        global = "Linux-${arch}";
-        # https://us.download.nvidia.com/XFree86/Linux-x86_64/
-        us = global;
-      } // (
-        # override for specific architectures
-        {
-          "armv7l-gnueabihf" = {
-            # https://download.nvidia.com/XFree86/Linux-32bit-ARM/
-            global = "Linux-32bit-ARM";
-            # https://us.download.nvidia.com/XFree86/Linux-x86-ARM/
-            us = "Linux-x86-ARM/";
-          };
-          "aarch64" = {
-            # https://us.download.nvidia.com/XFree86/aarch64/
-            us = arch;
-          };
-        }.${arch} or { }
-      );
+      dir_overrides = {
+        "armv7l-gnueabihf" = {
+          # https://download.nvidia.com/XFree86/Linux-32bit-ARM/
+          global = "Linux-32bit-ARM";
+          # https://us.download.nvidia.com/XFree86/Linux-x86-ARM/
+          us = "Linux-x86-ARM";
+        };
+        "aarch64" = {
+          # https://us.download.nvidia.com/XFree86/aarch64/
+          us = arch;
+        };
+      };
+      dir = label: lib.attrByPath [ arch label ] "Linux-${arch}" dir_overrides;
     in
     [
-      "https://download.nvidia.com/XFree86/${d.global}/"
-      "https://us.download.nvidia.com/XFree86/${d.us}/"
+      "https://download.nvidia.com/XFree86/${dir "global"}/"
+      "https://us.download.nvidia.com/XFree86/${dir "us"}/"
     ];
 
   mkChannelPackage =
@@ -91,13 +82,11 @@ let
       inherit version;
       src = fetchurl {
         urls = urlsProvider {
-          inherit version suffix;
-          system = "x86_64-linux";
+          inherit version suffix system;
         };
         sha256 = lookupSavedHash {
-          inherit version suffix;
+          inherit version suffix system;
           defaultHash = lib.fakeSha256;
-          system = "x86_64-linux";
         };
       };
     };
@@ -122,29 +111,59 @@ let
     listToAttrs (map mapChannel (importJSON ./channels.json));
 in
 channels // {
-  tesla = mkPackageSetFor rec {
-    version = "510.47.03";
-    src = fetchurl {
-      url = "https://us.download.nvidia.com/tesla/${version}/NVIDIA-Linux-aarch64-${version}.run";
-      sha256 = lookupSavedHash {
-        inherit version;
-        system = "aarch64-linux";
-      };
+  /*
+    production = mkDriverForChannel {
+    branch = "current";
+    maturity = "long-lived-branch-release";
     };
-  };
+
+    latest = mkDriverForChannel {
+    branch = "current";
+    };
+
+    beta = mkDriverForChannel {
+    branch = "current";
+    maturity = "beta";
+    };
+
+    # GKxxx "Kepler" GPUs
+    legacy_470 = mkDriverForChannel {
+    branch = "470";
+    };
+
+    # GF1xx "Fermi" GPUs
+    legacy_390 = mkDriverForChannel {
+    branch = "390";
+    };
+
+    tesla = mkDriver {
+    version = "510.47.03";
+    cdnProvider = _: [ "https://us.download.nvidia.com/tesla/" ];
+    };
+
+    vulkan_beta = mkDriver {
+    version = "470.62.22";
+    cdnProvider = _: [ "https://developer.nvidia.com/" ];
+    urlProvider = { version, ... }: "vulkan-beta-${lib.concatStrings (lib.splitString "." version)}-linux";
+    };
+
+    current = mkDriver {
+    version = "470.86";
+    };
+  */
   old = mkChannelPackage {
     version = "1.0-6106";
     suffix = "pkg2";
   };
-  vulkan_beta = mkPackageSetFor rec {
-    version = "470.62.22";
-    src = fetchurl {
-      url = "https://developer.nvidia.com/vulkan-beta-4706222-linux";
-      sha256 = "sha256-ZD60SIwZ3lezN7FBj1GAJBaK/t4WobnLMkqQf10BQQs=";
-    };
+
+  tesla = mkChannelPackage {
+    version = "510.47.03";
+    downloadMirrors = _: [ "https://us.download.nvidia.com/tesla/" ];
   };
 
-  defaultPackage = mkChannelPackage {
+  current = mkChannelPackage {
     version = "470.86";
   };
+
+  defaultPackage = channels.legacy_470;
 }

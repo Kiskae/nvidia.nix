@@ -2,15 +2,20 @@
   description = "A very basic flake";
 
   inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-
   inputs.flake-utils.url = "github:numtide/flake-utils";
-
   inputs.flake-compat = {
     url = github:edolstra/flake-compat;
     flake = false;
   };
+  inputs.nix-eval-jobs = {
+    url = "github:nix-community/nix-eval-jobs/v0.0.6";
+    inputs = {
+      nixpkgs.follows = "nixpkgs";
+      flake-utils.follows = "flake-utils";
+    };
+  };
 
-  outputs = { self, nixpkgs, flake-utils, ... }: flake-utils.lib.simpleFlake {
+  outputs = { self, nixpkgs, flake-utils, nix-eval-jobs, ... }: flake-utils.lib.simpleFlake {
     inherit self nixpkgs;
     name = "nvidiaPackages";
     config.allowUnfree = true;
@@ -20,6 +25,7 @@
     shell = { pkgs }: with pkgs; mkShell {
       outputs = [ "lib" "out" "dev" "lib32" ];
       nativeBuildInputs = [
+        (nix-eval-jobs.packages.${pkgs.system}.default)
         bashInteractive
         nixpkgs-fmt
         bintools
@@ -27,14 +33,21 @@
         file
         nix-index
         jq
-        (python3.withPackages (pkgs: [ pkgs.yapf ]))
+        (python3.withPackages (pkgs: [
+          pkgs.flake8
+          pkgs.black
+          pkgs.more-itertools
+          pkgs.pyparsing
+        ]))
+        #(haskellPackages.ghcWithPackages (pkgs: [pkgs.strong-path pkgs.deque]))
+        #haskell-language-server
       ];
       buildInputs = [ ];
     };
     systems = [
       #"i686-linux"
       "x86_64-linux"
-      # "aarch64-linux"
+      "aarch64-linux"
     ];
   };
 }

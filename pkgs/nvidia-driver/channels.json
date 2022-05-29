@@ -2,22 +2,27 @@
   {
     "channel": "current",
     "status": "long-lived-branch-release",
-    "version": "510.60.02"
+    "version": "510.73.05"
   },
   {
     "channel": "current",
     "status": "official",
-    "version": "495.46"
+    "version": "510.73.05"
+  },
+  {
+    "channel": "current",
+    "status": "beta",
+    "version": "515.43.04"
   },
   {
     "channel": "470",
     "status": "official",
-    "version": "470.103.01"
+    "version": "470.129.06"
   },
   {
     "channel": "390",
     "status": "official",
-    "version": "390.147"
+    "version": "390.151"
   },
   {
     "channel": "340",

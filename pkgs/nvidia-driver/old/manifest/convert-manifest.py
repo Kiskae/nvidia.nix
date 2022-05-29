@@ -17,19 +17,24 @@ def make_relative(path: PurePosixPath) -> PurePosixPath:
         return path
 
 
-def format_output(src_path: PurePosixPath,
-                  target_path: PurePosixPath,
-                  permissions: str,
-                  file_type: str,
-                  module: Optional[str],
-                  arch: Optional[str],
-                  extra: Optional[str]
-                  ) -> str:
-    return f'manifest_entry "{make_relative(src_path)}" "{make_relative(target_path)}" ' + \
-        f'"{permissions}" "{file_type}" "{module or ""}" "{arch or ""}" "{extra or ""}"'
+def format_output(
+    src_path: PurePosixPath,
+    target_path: PurePosixPath,
+    permissions: str,
+    file_type: str,
+    module: Optional[str],
+    arch: Optional[str],
+    extra: Optional[str],
+) -> str:
+    return (
+        f'manifest_entry "{make_relative(src_path)}" "{make_relative(target_path)}" '
+        + f'"{permissions}" "{file_type}" "{module or ""}" "{arch or ""}" "{extra or ""}"'
+    )
 
 
-def resolve_symlink(src_path: PurePosixPath, data: List[str]) -> Tuple[PurePosixPath, PurePosixPath]:
+def resolve_symlink(
+    src_path: PurePosixPath, data: List[str]
+) -> Tuple[PurePosixPath, PurePosixPath]:
     symlink_target = PurePosixPath(data.pop())
     if len(data):
         target_dir = symlink_target
@@ -50,26 +55,34 @@ def maybe_pop(list: List[str], test: Callable[[str], Optional[str]]) -> Optional
 
 def match_enum(*values: str) -> Callable[[str], Optional[str]]:
     """checks if the input is one of the given values, returning the value if true"""
+
     def matcher(token: str):
         if token in values:
             return token
+
     return matcher
 
 
 def match_tag(tag: str) -> Callable[[str], Optional[str]]:
     """checks if the input has the form "{tag}:{str}", returns {str} if it matches"""
+
     def matcher(token: str):
         parts = token.split(":", 2)
         if parts[0] == tag and len(parts) == 2:
             return parts[1]
+
     return matcher
 
-def remove_prefixes(path: PurePosixPath, dirs: List[str]) -> Tuple[PurePosixPath, Optional[str]]:
+
+def remove_prefixes(
+    path: PurePosixPath, dirs: List[str]
+) -> Tuple[PurePosixPath, Optional[str]]:
     segments = path.parts
     if segments[0] in dirs:
         return (PurePosixPath(*segments[1:]), segments[0])
     else:
         return (path, None)
+
 
 def convert_manifest_entry(raw_line: str, legacy_kernel_depth: int = 1) -> str:
     parts: List[str] = raw_line.strip().split()
@@ -117,15 +130,14 @@ def convert_manifest_entry(raw_line: str, legacy_kernel_depth: int = 1) -> str:
     elif inherits_path is not None:
         # target path is a copy of source path with the given
         #  number of path segments removed
-        target_file = PurePosixPath(*target_file.parts[int(inherits_path):])
+        target_file = PurePosixPath(*target_file.parts[int(inherits_path) :])
     elif type.endswith("_MODULE_SRC") or type.endswith("_MODULE_CMD"):
         # modern kernel sources are handled by INHERIT_PATH_DEPTH,
         #  this ensures the kernel directory gets unpacked
         target_file = PurePosixPath(*target_file.parts[legacy_kernel_depth:])
     elif len(parts):
         # leftover types appear to specify a path to put the source file into
-        target_file = PurePosixPath(parts.pop()) / \
-            PurePosixPath(target_file.name)
+        target_file = PurePosixPath(parts.pop()) / PurePosixPath(target_file.name)
     else:
         # no information about target path, presumably entirely dependent on
         #  the file type
@@ -144,7 +156,7 @@ def convert_manifest_entry(raw_line: str, legacy_kernel_depth: int = 1) -> str:
         # only needed if target location was popped, because of symlinks
         if popped:
             (src_file, _) = remove_prefixes(src_file, [popped])
-        
+
         if "lib64" == popped:
             arch = "NATIVE"
         elif "lib" == popped:
@@ -179,8 +191,8 @@ def read_header(it: Iterator[str]) -> PurePosixPath:
         consume(it, 1)
 
     consume(it, 2)
-    
-    kernel_path=PurePosixPath(next(it).rstrip())
+
+    kernel_path = PurePosixPath(next(it).rstrip())
 
     # skip precompiled headers location
     consume(it, 1)
@@ -196,7 +208,10 @@ def convert_manifest(source: Iterable[str], sink: StringIO):
 
     for line in it:
         try:
-            print(convert_manifest_entry(line, legacy_kernel_depth=kernel_dir_depth), file=sink)
+            print(
+                convert_manifest_entry(line, legacy_kernel_depth=kernel_dir_depth),
+                file=sink,
+            )
         except IndexError:
             print("Unexpected manifest entry: ", line, file=sys.stderr)
 
@@ -204,7 +219,9 @@ def convert_manifest(source: Iterable[str], sink: StringIO):
 def main():
     filepath = sys.argv[1]
     if not os.path.isfile(filepath):
-        print("File path {} does not exist. Exiting...".format(filepath), file=sys.stderr)
+        print(
+            "File path {} does not exist. Exiting...".format(filepath), file=sys.stderr
+        )
         sys.exit(1)
 
     with open(filepath) as fp:
