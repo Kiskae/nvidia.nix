@@ -22,12 +22,12 @@
 , jansson
 }:
 let
-  version = "515.43.04";
+  version = "515.48.07";
   src = fetchFromGitHub {
     owner = "NVIDIA";
     repo = "nvidia-settings";
     rev = version;
-    sha256 = "sha256-j47LtP6FNTPfiXFh9KwXX8vZOQzlytA30ZfW9N5F2PY="; #lib.fakeSha256; # "sha256-4TBA/ITpaaBiVDkpj7/Iydei1knRPpruPL4fRrqFAmU=";
+    sha256 = "sha256-XwdMsAAu5132x2ZHqjtFvcBJk6Dao7I86UksxrOkknU="; #lib.fakeSha256; # "sha256-4TBA/ITpaaBiVDkpj7/Iydei1knRPpruPL4fRrqFAmU=";
   };
 
   # these dependencies get dynamically loaded

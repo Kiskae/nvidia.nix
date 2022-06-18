@@ -20,7 +20,8 @@
 
   outputs = [ "out" "dev" ];
 
-  NV_EXCLUDE_KERNEL_MODULES = []; # [ "nvidia-peermem" ] ++ disabledModules;
+  NV_EXCLUDE_KERNEL_MODULES = [ ]; # [ "nvidia-peermem" ] ++ disabledModules;
+  NV_VERBOSE = 1;
 
   makeFlags = kernel.makeFlags ++ [
     "SYSSRC=${kernel.dev}/lib/modules/${kernel.modDirVersion}/source"

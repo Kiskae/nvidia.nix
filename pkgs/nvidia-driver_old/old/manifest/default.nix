@@ -154,6 +154,6 @@ in
 
       ${python3}/bin/python3 ${./convert-manifest.py} "$sources/.manifest" > $out
     '';
-    # TODO: variables required to generate classifiers?
-    # Classifier -> { Manifest, onMatch, onMiss } -> derivation
+  # TODO: variables required to generate classifiers?
+  # Classifier -> { Manifest, onMatch, onMiss } -> derivation
 }

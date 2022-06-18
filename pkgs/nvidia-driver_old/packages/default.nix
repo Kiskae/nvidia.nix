@@ -159,10 +159,10 @@ self: {
       #self.libnvidia-tls
       #self.libcuda
       self.kmod
-      self.libnvidia-internal
+      #self.libnvidia-internal
       # self.firmware
       self.testPkg
-      linuxPackages.nvidia_x11_legacy470
+      # linuxPackages.nvidia_x11_legacy470
       #linuxPackages.nvidia_x11_legacy470.settings
       #linuxPackages.nvidia_x11_legacy470.persistenced
       pkgs.mesa

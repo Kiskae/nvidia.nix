@@ -1,9 +1,10 @@
 import argparse
 import json
+import sys
 from collections import deque
 from dataclasses import asdict, dataclass
-from pathlib import Path, PurePosixPath
-from typing import Any, Callable, Generic, Iterable, Iterator, Optional, TypeVar
+from pathlib import PurePosixPath
+from typing import Any, Callable, Generic, Iterable, Iterator, Optional, TextIO, TypeVar
 
 T = TypeVar("T")
 R = TypeVar("R")
@@ -220,7 +221,9 @@ class InstallableEntry:
     entry: ManifestEntry
 
 
-def read_manifest(path: Path) -> Iterable[InstallableEntry]:
+def read_manifest(
+    source: TextIO,
+) -> tuple[ManifestHeader, Iterable[InstallableEntry]]:
     def remove_known_prefixes(
         path: PurePosixPath, prefixes: list[str]
     ) -> tuple[PurePosixPath, Optional[str]]:
@@ -270,10 +273,10 @@ def read_manifest(path: Path) -> Iterable[InstallableEntry]:
                 popped, None
             )
 
-    with path.open() as f:
-        source = map(str.rstrip, f)
-        header = ManifestHeader.parse_header(source)
+    source = map(str.rstrip, source)
+    header = ManifestHeader.parse_header(source)
 
+    def iter() -> Iterable[InstallableEntry]:
         for raw_entry in source:
             try:
                 entry = ManifestEntry.parse_entry(raw_entry)
@@ -283,31 +286,43 @@ def read_manifest(path: Path) -> Iterable[InstallableEntry]:
             except Exception as ex:
                 raise ValueError(f"unexpected entry: {raw_entry}") from ex
 
+    return header, iter()
+
 
 class PathEncoder(json.JSONEncoder):
     def default(self, o: Any) -> Any:
         if isinstance(o, PurePosixPath):
-            return str(o)
+            return o.as_posix()
         return super().default(o)
 
 
 def process_manifest(
-    manifestPath: Path,
-    outPath: Path,
+    manifestSource: TextIO, entrySink: TextIO, headerSink: TextIO
 ) -> None:
-    with outPath.open("w") as f:
-        for entry in read_manifest(manifestPath):
-            json.dump(asdict(entry), fp=f, cls=PathEncoder)
-            print("", file=f)
+    (header, entries) = read_manifest(manifestSource)
+
+    # write out header data
+    json.dump(asdict(header), fp=headerSink, cls=PathEncoder)
+
+    # write manifest entries
+    for entry in entries:
+        json.dump(asdict(entry), fp=entrySink, cls=PathEncoder)
+        entrySink.write("\n")
+
+    headerSink.flush()
+    entrySink.flush()
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--outpath", type=Path, required=True)
-    parser.add_argument("manifest", type=Path)
+    parser.add_argument("--entries", type=argparse.FileType("w"), default=sys.stdout)
+    parser.add_argument("--header", type=argparse.FileType("w"), default=sys.stderr)
+    parser.add_argument(
+        "manifest", nargs="?", type=argparse.FileType("r"), default=sys.stdin
+    )
     args = parser.parse_args()
 
-    process_manifest(args.manifest, args.outpath)
+    process_manifest(args.manifest, args.entries, args.header)
 
 
 if __name__ == "__main__":
