@@ -1,0 +1,30 @@
+{
+  "515": {
+    "type": "production",
+    "version": "515.65.01"
+  },
+  "510": {
+    "type": "production",
+    "version": "510.85.02"
+  },
+  "495": {
+    "type": "new feature",
+    "version": "495.44"
+  },
+  "470": {
+    "type": "lts",
+    "version": "470.141.03"
+  },
+  "465": {
+    "type": "new feature",
+    "version": "465.24.02"
+  },
+  "460": {
+    "type": "production",
+    "version": "460.106.00"
+  },
+  "450": {
+    "type": "lts",
+    "version": "450.203.03"
+  }
+}

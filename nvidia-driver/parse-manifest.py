@@ -65,6 +65,7 @@ class ManifestHeader:
     # a version string
     version: str
     # the kernel module file name
+    # NOTE: has been removed from nvidia-installer for quite a while
     kernel_module_file: Optional[PurePosixPath]
     # the kernel interface file name
     kernel_interface_file: Optional[PurePosixPath]
@@ -303,13 +304,12 @@ def process_manifest(
 
     # write out header data
     json.dump(asdict(header), fp=headerSink, cls=PathEncoder)
+    headerSink.flush()
 
     # write manifest entries
     for entry in entries:
         json.dump(asdict(entry), fp=entrySink, cls=PathEncoder)
         entrySink.write("\n")
-
-    headerSink.flush()
     entrySink.flush()
 
 

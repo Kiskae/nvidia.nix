@@ -1,0 +1,154 @@
+{
+  "nvidia-versions": {
+    "current": {
+      "beta": "525.53",
+      "long-lived-branch-release": "525.78.01",
+      "official": "520.56.06"
+    },
+    "470": {
+      "official": "470.161.03"
+    },
+    "390": {
+      "official": "390.157"
+    },
+    "340": {
+      "official": "340.108"
+    },
+    "304": {
+      "official": "304.137"
+    },
+    "173.14": {
+      "official": "173.14.39"
+    },
+    "96.43": {
+      "official": "96.43.23"
+    },
+    "71.86": {
+      "official": "71.86.15"
+    }
+  },
+  "tesla-releases": {
+    "525": {
+      "type": "production",
+      "version": [
+        "525.60.13"
+      ],
+      "architectures": [
+        "x86_64",
+        "aarch64",
+        "ppc64le"
+      ]
+    },
+    "520": {
+      "type": "new feature",
+      "version": [
+        "520.56.06"
+      ],
+      "architectures": [
+        "x86_64",
+        "aarch64"
+      ]
+    },
+    "515": {
+      "type": "production",
+      "version": [
+        "515.86.01",
+        "515.65.07",
+        "515.65.01",
+        "515.48.07"
+      ],
+      "architectures": [
+        "x86_64",
+        "aarch64",
+        "ppc64le"
+      ]
+    },
+    "510": {
+      "type": "production",
+      "version": [
+        "510.108.03",
+        "510.85.02",
+        "510.73.08",
+        "510.47.03"
+      ],
+      "architectures": [
+        "x86_64",
+        "aarch64",
+        "ppc64le"
+      ]
+    },
+    "495": {
+      "type": "new feature",
+      "version": [
+        "495.44"
+      ],
+      "architectures": [
+        "x86_64",
+        "aarch64"
+      ]
+    },
+    "470": {
+      "type": "lts",
+      "version": [
+        "470.161.03",
+        "470.141.10",
+        "470.141.03",
+        "470.129.06",
+        "470.103.01",
+        "470.82.01",
+        "470.57.02"
+      ],
+      "architectures": [
+        "x86_64",
+        "aarch64",
+        "ppc64le"
+      ]
+    },
+    "465": {
+      "type": "new feature",
+      "version": [
+        "465.24.02"
+      ],
+      "architectures": [
+        "x86_64",
+        "aarch64"
+      ]
+    },
+    "460": {
+      "type": "production",
+      "version": [
+        "460.106.00",
+        "460.91.03",
+        "460.73.01",
+        "460.32.03"
+      ],
+      "architectures": [
+        "x86_64",
+        "aarch64",
+        "ppc64le"
+      ]
+    },
+    "450": {
+      "type": "lts",
+      "version": [
+        "450.216.04",
+        "450.203.08",
+        "450.203.03",
+        "450.191.01",
+        "450.172.01",
+        "450.156.00",
+        "450.142.00",
+        "450.119.04",
+        "450.119.03",
+        "450.80.02",
+        "450.102.04"
+      ],
+      "architectures": [
+        "x86_64",
+        "aarch64",
+        "ppc64le"
+      ]
+    }
+  },
+  "vulkan-dev-latest": "525.47.04"
+}
