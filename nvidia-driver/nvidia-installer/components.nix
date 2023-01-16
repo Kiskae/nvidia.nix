@@ -151,7 +151,7 @@ in
 
       extraPaths = [
         {
-          path = "/lib/firmware/nvidia";
+          path = "/lib/firmware/nvidia/\\($version)";
         }
       ];
 

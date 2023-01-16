@@ -166,7 +166,13 @@
       runJqScript {
         name = "install-${pname}-${version}.sh";
         src = annotatedManifest;
-        flags = ["--raw-output" "--slurp"];
+        flags = [
+          "--raw-output"
+          "--slurp"
+          "--arg"
+          "version"
+          version
+        ];
       } ''
         def basename: split("/") | last;
         def path_definition(f; path_f): (select(.entry | f) | .final_path) = (.entry.path | path_f);
