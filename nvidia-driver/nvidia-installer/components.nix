@@ -632,6 +632,7 @@ in
         {
           test = match.basename ''. == "nvidia-dbus.conf"'';
           path = "/share/dbus-1/system.d";
+          force_path = true;
         }
       ];
 
