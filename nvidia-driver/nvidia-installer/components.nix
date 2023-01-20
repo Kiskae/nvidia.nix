@@ -297,7 +297,7 @@ in
     libnvidia-api = {
       profile = dylib_profile;
       availability = {
-        addedIn = "525.53";
+        addedIn = "525";
       };
     };
 
