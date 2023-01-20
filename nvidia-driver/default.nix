@@ -69,11 +69,12 @@
 
   mkPackageSet = buildPackages.callPackage ./nvidia-installer;
 
-  createPackages = pname: src:
-    buildPackages.linkFarm "${pname}-linkfarm" ((mkPackageSet {
-        inherit src;
-      })
-      .introspection);
+  createPackages = pname: src: let
+    components = mkPackageSet {
+      inherit src;
+    };
+  in
+    components.report;
 in
   lib.mapAttrs createPackages {
     probe = fetchNvidiaBinary {
@@ -127,6 +128,14 @@ in
       hash = "sha256-Xagqf4x254Hn1/C+e3mNtNNE8mvU+s+avPPHHHH+dkA=";
     };
 
+    tesla525 = fetchurl {
+      passthru = {
+        version = "525.60.13";
+      };
+      url = "https://us.download.nvidia.com/tesla/525.60.13/NVIDIA-Linux-x86_64-525.60.13.run";
+      hash = "sha256-3OHBhPnwOL5yI3zNKcZrsVEHf2A38cFYyD1YK9LbqMo=";
+    };
+
     vulkan_dev = fetchurl rec {
       passthru = {
         version = "525.47.04";
@@ -136,7 +145,7 @@ in
     };
 
     latest = fetchNvidiaBinary {
-      version = "525.78.01";
-      hash = "sha256-Q9pC0r9pvDfqnHwPoC9S2w3MSDwnL1LtrK2JpctJWpM=";
+      version = "525.85.05";
+      hash = "sha256-6mO0JTQDsiS7cxOol3qSDf6dID1mHdX2/CZYWnAXkUA=";
     };
   }
