@@ -421,7 +421,9 @@ in
         (match.module ''. == "ngx"'')
         (match.type ''. != "WINE_LIB"'')
       ];
-      inherit (wine_dll) availability;
+      availability = {
+        addedIn = "450.51";
+      };
       profile = dylib_profile;
     };
 
@@ -429,6 +431,8 @@ in
       availability = {
         # debian changelog
         addedIn = "470.42.01";
+        #FIXME: compat32 not immediately available
+        # see .#legacy470
         compat32 = true;
       };
 
@@ -448,6 +452,7 @@ in
       matcher = match.module ''. == "opticalflow"'';
       availability = {
         addedIn = "418.30";
+        compat32 = true;
       };
       profile = dylib_profile;
     };
