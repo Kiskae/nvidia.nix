@@ -79,7 +79,7 @@
 
     extraPaths = [
       {
-        path = "/src";
+        path = "";
       }
     ];
 
@@ -147,11 +147,18 @@ in
     };
 
     firmware = {
-      matcher = match.type ''. == "FIRMWARE"'';
+      matcher = match.module ''. == "gsp"'';
 
       extraPaths = [
         {
+          test = match.type ''. == "FIRMWARE"'';
           path = "/lib/firmware/nvidia/\\($version)";
+        }
+        {
+          # SWIDTAG
+          test = match.path ''endswith("nvidia/rim")'';
+          path = "/share/nvidia/rim";
+          force_path = true;
         }
       ];
 
@@ -310,7 +317,9 @@ in
     };
 
     libnvidia-compiler = {
-      inherit (libcuda) availability;
+      availability = libcuda.availability // {
+        removedIn = "535.43.02";
+      };
       profile = dylib_profile;
     };
 
@@ -457,6 +466,14 @@ in
       profile = dylib_profile;
     };
 
+    libnvidia-pkcs11 = {
+      matcher = match.module ''. == "nvlibpkcs11"'';
+      availability = {
+        addedIn = "535.43.02";
+      };
+      profile = dylib_profile;
+    };
+
     libnvidia-ptxjitcompiler = {
       availability = {
         # from debian changelog
@@ -495,6 +512,17 @@ in
 
     libnvoptix = {
       matcher = match.module ''. == "optix"'';
+
+      extraPaths = [
+        {
+          # nvoptix.bin needs to end up in the same 
+          #  directory as libnvoptix.so
+          test = match.type ''. == "OPENGL_DATA"'';
+          path = "/lib";
+          force_path = true;
+        }
+      ];
+
       availability = {
         addedIn = "410.57";
       };
