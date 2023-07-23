@@ -6,6 +6,7 @@
   python3,
   jq,
   tree,
+  libarchive,
   # package inputs
   src,
   doExtract ? true,
@@ -29,32 +30,15 @@
         inherit src version;
         meta = meta';
 
+        nativeBuildInputs = [libarchive];
+
         # Ensure we don't need to keep the tarball around
         disallowedReferences = [src];
       } ''
-        if [[ $(file -b --mime-type $src) != "text/x-shellscript" ]]; then
-          # not a makeself shell script
-          return 1
-        fi
-
-        # nvidia has used different compression methods
-        compression=$(PATH= $SHELL -r $src --info | sed -n 's/^.*Compression\s*:\s\(\S*\).*$/\1/p')
-        case $compression in
-          xz)
-            extractCmd="xz -d"
-            ;;
-          gzip)
-            extractCmd="gzip -d"
-            ;;
-          *)
-            echo "runfile uses unknown compression '$compression'"
-            return 1
-            ;;
-        esac
-
         skip=$(sed 's/^skip=//; t; d' $src)
+        
         mkdir -p $out
-        tail -n +$skip $src | $extractCmd | tar xvf - -C $out
+        tail -n +$skip $src | bsdtar xvf - -C $out
       ''
     # components derive from the source package, make sure it has a license
     else lib.addMetaAttrs meta' src;
