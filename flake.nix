@@ -1,5 +1,5 @@
 {
   description = "nvidia.nix flake";
 
-  outputs = { self }: {};
+  outputs = {self}: {};
 }
