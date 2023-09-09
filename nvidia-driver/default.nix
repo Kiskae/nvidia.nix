@@ -77,11 +77,6 @@
     components.report;
 in
   lib.mapAttrs createPackages {
-    probe = fetchNvidiaBinary {
-      version = "337.25";
-      hash = "sha256-gygPdzj2W7LnkOdTCjiXjPC9CqdB7aUWKcnpsGgSivA=";
-    };
-
     legacy71 = fetchNvidiaBinary {
       version = "71.86.15";
       hash = "sha256-ARBKXYBOIdPwiY8j0ss9/8i3gkUhdiaeBxymJdPhyUQ=";
@@ -124,8 +119,8 @@ in
     };
 
     legacy470 = fetchNvidiaBinary {
-      version = "470.161.03";
-      hash = "sha256-Xagqf4x254Hn1/C+e3mNtNNE8mvU+s+avPPHHHH+dkA=";
+      version = "470.199.02";
+      hash = "sha256-/fggDt8RzjLDW0JiGjr4aV4RGnfEKL8MTTQ4tCjXaP0=";
     };
 
     powerd_support = fetchNvidiaBinary {
@@ -133,24 +128,24 @@ in
       hash = "sha256-Lj7cOvulhApeuRycIiyYy5kcPv3ZlM8qqpPUWl0bmRs=";
     };
 
-    tesla525 = fetchurl {
+    tesla535 = fetchurl {
       passthru = {
-        version = "525.60.13";
+        version = "535.54.03";
       };
-      url = "https://us.download.nvidia.com/tesla/525.60.13/NVIDIA-Linux-x86_64-525.60.13.run";
-      hash = "sha256-3OHBhPnwOL5yI3zNKcZrsVEHf2A38cFYyD1YK9LbqMo=";
+      url = "https://us.download.nvidia.com/tesla/535.54.03/NVIDIA-Linux-x86_64-535.54.03.run";
+      hash = "sha256-RUdk9X6hueGRZqNw94vhDnHwYmQ4+xl/cm3DyvBbQII=";
     };
 
     vulkan_dev = fetchurl rec {
       passthru = {
-        version = "525.47.04";
+        version = "535.43.09";
       };
       url = "https://developer.nvidia.com/downloads/vulkan-beta-${lib.concatStrings (lib.splitString "." passthru.version)}-linux";
-      hash = "sha256-PcDRM39s4vh5++4TocIJKI3wsxWxJdy3p3KAenpdIc0=";
+      hash = "sha256-7QDp+VDgxH7RGW40kbQp4F/luh0DCYb4BS0gU/6wn+c=";
     };
 
     latest = fetchNvidiaBinary {
-      version = "525.85.05";
-      hash = "sha256-6mO0JTQDsiS7cxOol3qSDf6dID1mHdX2/CZYWnAXkUA=";
+      version = "535.104.05";
+      hash = "sha256-L51gnR2ncL7udXY2Y1xG5+2CU63oh7h8elSC4z/L7ck=";
     };
   }
