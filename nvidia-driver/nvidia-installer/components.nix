@@ -317,9 +317,11 @@ in
     };
 
     libnvidia-compiler = {
-      availability = libcuda.availability // {
-        removedIn = "535.43.02";
-      };
+      availability =
+        libcuda.availability
+        // {
+          removedIn = "535.43.02";
+        };
       profile = dylib_profile;
     };
 
@@ -515,7 +517,7 @@ in
 
       extraPaths = [
         {
-          # nvoptix.bin needs to end up in the same 
+          # nvoptix.bin needs to end up in the same
           #  directory as libnvoptix.so
           test = match.type ''. == "OPENGL_DATA"'';
           path = "/lib";

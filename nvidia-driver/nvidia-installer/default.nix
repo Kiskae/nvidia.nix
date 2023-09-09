@@ -36,7 +36,7 @@
         disallowedReferences = [src];
       } ''
         skip=$(sed 's/^skip=//; t; d' $src)
-        
+
         mkdir -p $out
         tail -n +$skip $src | bsdtar xvf - -C $out
       ''
