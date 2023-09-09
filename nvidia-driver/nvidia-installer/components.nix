@@ -659,7 +659,11 @@ in
     };
 
     nvidia-powerd = {
-      matcher = match.module ''. == "powerd"'';
+      matcher = match.any [
+        (match.module ''. == "powerd"'')
+        # earliest releases had this marked as documentation
+        (match.filePath ''. == "nvidia-dbus.conf"'')
+      ];
 
       extraPaths = [
         {

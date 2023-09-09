@@ -128,6 +128,11 @@ in
       hash = "sha256-Xagqf4x254Hn1/C+e3mNtNNE8mvU+s+avPPHHHH+dkA=";
     };
 
+    powerd_support = fetchNvidiaBinary {
+      version = "510.39.01";
+      hash = "sha256-Lj7cOvulhApeuRycIiyYy5kcPv3ZlM8qqpPUWl0bmRs=";
+    };
+
     tesla525 = fetchurl {
       passthru = {
         version = "525.60.13";
