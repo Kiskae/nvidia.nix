@@ -204,7 +204,7 @@
         (removeAttrs src.meta ["sourceProvenance"])
         // meta
         // {
-          broken = !(availability.${pname});
+          broken = !availability.${pname};
         };
       allowedReferences = [];
       succeedOnFailure = true;

@@ -8,28 +8,32 @@
 
     treefmt-nix.url = "github:numtide/treefmt-nix";
     treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
+
+    flake-parts.url = "github:hercules-ci/flake-parts";
+    flake-root.url = "github:srid/flake-root";
   };
 
-  outputs = {
-    self,
-    nixpkgs,
+  outputs = inputs @ {
+    flake-parts,
     systems,
-    treefmt-nix,
     ...
-  }: let
-    # Small tool to iterate over each systems
-    eachSystem = f: nixpkgs.lib.genAttrs (import systems) (system: f nixpkgs.legacyPackages.${system});
-
-    # Eval the treefmt modules from ./treefmt.nix
-    treefmtEval = eachSystem (pkgs: treefmt-nix.lib.evalModule pkgs ./treefmt.nix);
-  in {
-    # for `nix fmt`
-    formatter = eachSystem (pkgs: treefmtEval.${pkgs.system}.config.build.wrapper);
-    # for `nix flake check`
-    checks = eachSystem (pkgs: {
-      formatting = treefmtEval.${pkgs.sytem}.config.build.check self;
+  }:
+    flake-parts.lib.mkFlake {inherit inputs;} ({self, ...}: {
+      flake = {
+        inherit (inputs.flake) nixosModules overlays;
+      };
+      debug = true;
+      systems = import systems;
+      imports = [
+        ./treefmt.nix
+        ./updater/module.nix
+      ];
+      perSystem = {pkgs, ...}: {
+        packages = let
+          nvPkgs = (pkgs.extend self.overlays.default).nvidiaPackages;
+        in {driver = nvPkgs.driver.test;};
+      };
     });
-  };
 
   /*
 
