@@ -1,0 +1,23 @@
+{
+  "geforce.L7160.official": "71.86.15",
+  "geforce.L9622.official": "96.43.23",
+  "geforce.R173_14.official": "173.14.39",
+  "geforce.R304_00.official": "304.137",
+  "geforce.R340_00.official": "340.108",
+  "geforce.R390_00.official": "390.157",
+  "geforce.R470_00.official": "470.223.02",
+  "geforce.current.beta": "545.23.06",
+  "geforce.current.long-lived-branch-release": "535.129.03",
+  "geforce.current.official": "545.29.02",
+  "tesla.r450": "450.248.02",
+  "tesla.r460": "460.106.00",
+  "tesla.r465": "465.24.02",
+  "tesla.r470": "470.223.02",
+  "tesla.r495": "495.44",
+  "tesla.r510": "510.108.03",
+  "tesla.r515": "515.105.01",
+  "tesla.r520": "520.56.06",
+  "tesla.r525": "525.147.05",
+  "tesla.r535": "535.129.03",
+  "vulkan-dev": "535.43.15"
+}

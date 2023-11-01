@@ -2,9 +2,11 @@
   description = "nvidia.nix dev flake";
 
   inputs = {
-    flake.url = "path:../";
+    flake.follows = "blank";
 
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable-small";
+
+    blank.url = "github:divnix/blank";
 
     treefmt-nix.url = "github:numtide/treefmt-nix";
     treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
