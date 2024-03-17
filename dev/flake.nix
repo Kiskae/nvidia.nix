@@ -2,7 +2,7 @@
   description = "nvidia.nix dev flake";
 
   inputs = {
-    flake.follows = "blank";
+    call-flake.url = "github:divnix/call-flake";
 
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable-small";
 
@@ -17,10 +17,15 @@
 
   outputs = inputs @ {
     flake-parts,
+    call-flake,
     systems,
     ...
   }:
-    flake-parts.lib.mkFlake {inherit inputs;} ({self, ...}: {
+    flake-parts.lib.mkFlake {
+      inputs = inputs // {
+        flake = call-flake ../.;
+      };
+    } ({self, inputs, ...}: {
       flake = {
         inherit (inputs.flake) nixosModules overlays;
       };
@@ -33,7 +38,7 @@
       perSystem = {pkgs, ...}: {
         packages = let
           nvPkgs = (pkgs.extend self.overlays.default).nvidiaPackages;
-        in {driver = nvPkgs.driver.test;};
+        in {driver = nvPkgs.driver.test2;};
       };
     });
 

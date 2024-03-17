@@ -6,10 +6,6 @@ PATTERN = re.compile(rb"Latest (?P<label>[^:]+)[^>]+>\s*(?P<version>[^<]+)</a>")
 
 
 class Worker(BaseWorker):
-    async def get_data(self, url):
-        for match in PATTERN.finditer(res.body):
-            yield match.groupdict()
-
     async def get_unix_results(self, url):
         results = {}
         res = await session.get(url)

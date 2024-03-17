@@ -24,6 +24,16 @@ in {
     };
   };
 
+  test2 = mkRunfilePackageSet {
+    runfile = fetchurl {
+      passthru = {
+        version = "550.54.14";
+      };
+      url = "https://download.nvidia.com/XFree86/Linux-x86_64/550.54.14/NVIDIA-Linux-x86_64-550.54.14.run";
+      hash = "sha256-jEl/8c/HwxD7h1FJvDD6pP0m0iN7LLps0uiweAFXz+M=";
+    };
+  };
+
   components = linkFarm "nvidia-report" {
     "final-components.nix" = writeText "final-components.nix" (lib.generators.toPretty {} components);
   };

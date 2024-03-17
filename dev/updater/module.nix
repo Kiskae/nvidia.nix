@@ -34,6 +34,8 @@
           "geforce" = {
             source = "unix_drivers";
 
+            # ignored = "550.54.14";
+
             # branch/maturity mapping based on
             # https://github.com/aaronp24/nvidia-versions
             known = lib.mapAttrsToList (match: data:
@@ -119,32 +121,13 @@
         inputsFrom = [config.flake-root.devShell];
 
         shellHook = ''
-          handleNewVersion() {
-            local name="$1"
-            local version="$2"
+          ghGenerateMatrix() {
+            set -euo pipefail
 
-            case "$name" in
-              driver.vulkan-dev)
-                echo "VULKAN"
-                ;;
-              driver.display.*)
-                echo "DISPLAY"
-                ;;
-              driver.tesla.*)
-                echo "TESLA"
-                ;;
-              *)
-                echo "WHAT"
-                ;;
-            esac
-
-            echo "$name => $version"
+            echo "matrix=$(nvcmp --json)" >> "$GITHUB_OUTPUT"
           }
 
           export SCRATCHDIR=$(mktemp -d)
-          trap 'rm -rf -- "$SCRATCHDIR"' EXIT
-
-          exec nvchecker
         '';
       };
   };
